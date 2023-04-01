@@ -15,7 +15,7 @@ const SelectBox = (props) => {
         setSelectedItems([]);
     }
 
-    const handleMultipleSelectedItem = (event) => {
+    const handleSelectedValue = (event) => {
         let { name, id } = event.target;
         if (selected[0] && selected[0]?.id === "-") selected.pop();
         if (multiple) {
@@ -78,7 +78,7 @@ const SelectBox = (props) => {
                                         className={`select_box_item ${selectedItems.includes(value) ? 'selected' : ""}`}
                                         id={value}
                                         name={text}
-                                        onClick={handleMultipleSelectedItem}>
+                                        onClick={handleSelectedValue}>
                                         {text}
                                     </button>
                                 </li>
