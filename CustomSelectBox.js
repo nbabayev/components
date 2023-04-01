@@ -1,80 +1,85 @@
 import React, { useState, useEffect } from 'react';
-import "./customSelectBox.css"
-// import arrowDown from "../../assets/arrow-down.svg"
+import "./selectbox.css"
+import arrowDown from "../../icons/Temporary/arrowDown.svg"
+import arrowUp from "../../icons/Temporary/arrowUp.svg"
 
 const SelectBox = (props) => {
-    const { placeholder, multiple, data } = props;
+    const { placeholder, multiple, data, setResult } = props;
     const [selectboxView, setSelectboxView] = useState(false);
-    const [selected, setSelected] = useState({
-        id: "",
-        name: placeholder
-    });
-    const [multiSelected, setMultiSelected] = useState([
-        {
-            id: "",
-            name: placeholder
-        }
-    ]);
-    const [selectedColor, setSelectedColor] = useState(false);
+    const [selected, setSelected] = useState([{ id: "-", name: placeholder }]);
     const [selectedItems, setSelectedItems] = useState([]);
 
-    const handleSelectBox = () => {
-        setSelectboxView(!selectboxView);
+    const handleDefaultValue = (e) => {
+        let { id } = e.target;
+        setSelected([{ id, name: placeholder }]);
+        setSelectedItems([]);
     }
 
-    const handleSelectedItem = (event) => {
-        let { name, id } = event.target;
-        setSelected({ ...selected, id, name });
-    }
     const handleMultipleSelectedItem = (event) => {
         let { name, id } = event.target;
-        if (name && id) {
-            setSelectedColor(true);
-        }
-        if (multiSelected[0] && multiSelected[0]?.name === placeholder) multiSelected.pop();
-        if (multiSelected.every(ms => ms.id !== id)) {
-            setSelectedItems([...selectedItems, +id])
-            setMultiSelected([...multiSelected, { name, id }]);
-        } else {
-            let thisobj = multiSelected.find(ms => ms.id == id);
-            let index = multiSelected.indexOf(thisobj);
-            if (index != -1) {
-                let rest = multiSelected.splice(index, 1);
-                setMultiSelected(multiSelected);
+        if (selected[0] && selected[0]?.id === "-") selected.pop();
+        if (multiple) {
+            if (selected.every(ms => ms.id !== id)) {
+                setSelectedItems([...selectedItems, +id]);
+                setSelected([...selected, { name, id }]);
+            } else {
+                let thisobj = selected.find(ms => ms.id == id);
+                if (thisobj !== undefined) {
+                    let index = selected.indexOf(thisobj);
+                    selected.splice(index, 1);
+                    setSelected(selected);
+                    setSelectedItems(selected.map(ms => +ms?.id));
+                }
             }
         }
+        else {
+            setSelected([{ name, id }]);
+            setSelectedItems([+id]);
+        }
     }
+    useEffect(() => setResult(selectedItems), [selectedItems]);
 
     return (
         <div>
             <div className="select_box_holder">
-                <div className='select_box_handler' onClick={handleSelectBox}>
+                <div className='select_box_handler' onClick={() => setSelectboxView(!selectboxView)}>
                     {
-                        multiple ?
+                        selected.length > 0 ?
                             <span>
                                 {
-                                    multiSelected?.map(({ name, id }) => (
-                                        <span key={id}>{multiSelected.length > 1 ? `${name}, ` : name}</span>
+                                    selected?.map(({ name, id }) => (
+                                        <span key={id}>{selected.length > 1 ? `${name}, ` : name}</span>
                                     ))
                                 }
-                            </span> : selected.name + 1
-
+                            </span> : placeholder
                     }
-                    {/* <span>{multiple ? multiSelected : selected.name}</span> */}
-                    {/* <img src={arrowDown} alt="" /> */}
+                    {selectboxView ?
+                        <img src={arrowUp} alt="" /> :
+                        <img src={arrowDown} alt="" />
+                    }
                 </div>
                 {
                     selectboxView &&
-                    <ul className='select_box'>
+                    <ul className='select_box' style={data?.length > 5 ? scrollStyle : {}}>
+                        <li>
+                            <button
+                                className={`select_box_item ${!selectedItems.length ? 'selected' : ""}`}
+                                id="-"
+                                name={placeholder}
+                                onClick={(e) => handleDefaultValue(e)}
+                            >
+                                {"Select"}
+                            </button>
+                        </li>
                         {
-                            data.length > 0 && data.map(({ value, label }) => (
-                                <li id={value} key={value}>
+                            data.length > 0 && data.map(({ key, text, value }) => (
+                                <li id={value} key={key}>
                                     <button
-                                        className={`select_box_item ${selectedItems.includes(value) && 'selected'}`}
+                                        className={`select_box_item ${selectedItems.includes(value) ? 'selected' : ""}`}
                                         id={value}
-                                        name={label}
-                                        onClick={multiple ? handleMultipleSelectedItem : handleSelectedItem}>
-                                        {label}
+                                        name={text}
+                                        onClick={handleMultipleSelectedItem}>
+                                        {text}
                                     </button>
                                 </li>
                             ))
@@ -86,4 +91,7 @@ const SelectBox = (props) => {
     )
 }
 
-export default SelectBox
+export default SelectBox;
+
+
+const scrollStyle = { height: "120px", overflowY: "scroll" }
